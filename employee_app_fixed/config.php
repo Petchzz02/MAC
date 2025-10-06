@@ -28,13 +28,13 @@ if (!mysqli_set_charset($conn, 'utf8mb4')) {
     die('Error loading character set utf8mb4: ' . mysqli_error($conn));
 }
 
-// ฟังก์ชันสำหรับเชื่อมต่อกับฐานข้อมูล checklist (db_sp_checklist)
+// ฟังก์ชันสำหรับเชื่อมต่อกับฐานข้อมูล checklist (ใช้ db_employee เดียวกัน)
 // คืนค่า connection object หรือ null เมื่อเชื่อมต่อไม่สำเร็จ
 function getChecklistConnection() {
     $DB_HOST = 'localhost';
     $DB_USER = 'root';
     $DB_PASS = '';
-    $DB_CHECKLIST = 'db_sp_checklist';
+    $DB_CHECKLIST = 'db_employee'; // ใช้ฐานข้อมูลเดียวกัน
     
     $conn_checklist = mysqli_connect($DB_HOST, $DB_USER, $DB_PASS, $DB_CHECKLIST);
     if (!$conn_checklist) {

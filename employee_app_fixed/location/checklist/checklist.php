@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * checklist.php
  * หน้าเช็คลิสต์สินค้าสำหรับแต่ละสถานที่
@@ -26,11 +26,41 @@ if (!$conn_checklist) {
     exit;
 }
 
+// ตรวจสอบและป้องกันชื่อตาราง
 $table = $location;
-$sql = "SELECT `id`,`product_code`,`product_name`,`image_path`,`status`,`note` FROM `{$table}` ORDER BY `id` ASC";
+$valid_tables = ['เมืองสมุทรปราการ', 'พระประแดง', 'พระสมุทรเจดีย์', 'บางพลี', 'บางบ่อ', 'บางเสาธง'];
+
+if (!in_array($table, $valid_tables, true)) {
+    $_SESSION['error'] = 'ตารางไม่ถูกต้อง';
+    mysqli_close($conn_checklist);
+    header('Location: ../location.php');
+    exit;
+}
+
+// ตรวจสอบว่าตารางมีอยู่จริงในฐานข้อมูล
+$escaped_table_check = mysqli_real_escape_string($conn_checklist, $table);
+$check_table_sql = "SHOW TABLES LIKE '" . $escaped_table_check . "'";
+$result_check = mysqli_query($conn_checklist, $check_table_sql);
+
+if (!$result_check || mysqli_num_rows($result_check) === 0) {
+    $_SESSION['error'] = 'ไม่พบตาราง: ' . htmlspecialchars($table);
+    mysqli_close($conn_checklist);
+    header('Location: ../location.php');
+    exit;
+}
+
+// ใช้ escape string เพื่อป้องกันปัญหา SQL injection และ syntax error
+$escaped_table = mysqli_real_escape_string($conn_checklist, $table);
+$sql = "SELECT `id`,`product_code`,`product_name`,`image_path`,`status`,`note` FROM `" . $escaped_table . "` ORDER BY `id` ASC";
+
+// เพิ่มการ debug (สามารถลบออกได้หลังจากแก้ไขเสร็จ)
+error_log("SQL Query: " . $sql);
+
 $res = mysqli_query($conn_checklist, $sql);
 if (!$res) { 
-    $_SESSION['error'] = 'เกิดข้อผิดพลาดในการดึงข้อมูล: ' . mysqli_error($conn_checklist);
+    $error_msg = 'เกิดข้อผิดพลาดในการดึงข้อมูล: ' . mysqli_error($conn_checklist);
+    error_log("Database Error: " . $error_msg);
+    $_SESSION['error'] = $error_msg;
     mysqli_close($conn_checklist);
     header('Location: ../location.php');
     exit;
@@ -91,7 +121,7 @@ include __DIR__ . '/../../includes/header.php';
           </div>
           <div class="card-body">
             <form method="post" action="save.php" id="checklistForm">
-              <input type="hidden" name="location" value="<?php echo htmlspecialchars($location); ?>">>
+              <input type="hidden" name="location" value="<?php echo htmlspecialchars($location); ?>">
               
               <?php foreach ($rows as $r): 
                 $statusClass = '';
@@ -168,9 +198,6 @@ include __DIR__ . '/../../includes/header.php';
                   <a href="summary.php?location=<?php echo urlencode($location); ?>" class="btn btn-warning btn-lg me-2">
                     <i class="bi bi-clipboard-data me-2"></i>ดูสรุปผล
                   </a>
-                  <button type="button" class="btn btn-danger btn-lg me-2" id="clearLatestBtn">
-                    <i class="bi bi-trash3 me-2"></i>เคลียร์ข้อมูลล่าสุด
-                  </button>
                 </div>
                 <div>
                   <button type="submit" class="btn btn-success btn-lg me-2" id="saveBtn">
@@ -239,25 +266,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Submit form
             this.submit();
-        });
-    }
-    
-    // Clear latest data functionality
-    const clearLatestBtn = document.getElementById('clearLatestBtn');
-    if (clearLatestBtn) {
-        clearLatestBtn.addEventListener('click', function() {
-            if (confirm('คุณต้องการเคลียร์ข้อมูลล่าสุดที่บันทึกไว้หรือไม่?')) {
-                const location = '<?php echo addslashes($location); ?>';
-                const clearBtn = this;
-                const originalText = clearBtn.innerHTML;
-                
-                // Show loading state
-                clearBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>กำลังเคลียร์...';
-                clearBtn.disabled = true;
-                
-                // Navigate to clear page
-                window.location.href = 'clear_latest.php?location=' + encodeURIComponent(location);
-            }
         });
     }
     
