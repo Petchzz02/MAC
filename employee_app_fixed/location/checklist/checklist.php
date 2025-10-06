@@ -1,40 +1,39 @@
-<?php
+﻿<?php
 /**
  * checklist.php
- * แสดงรายการเช็คลิสต์ของสถานที่ที่เลือก
- * Input (GET):
- * - location (string) - ชื่อสถานที่ (ใช้เป็นชื่อ table)
- * Behavior:
- * - ตรวจสอบ session
- * - ตรวจสอบว่า location อยู่ในรายการที่อนุญาต
- * - ดึงข้อมูลรายการสินค้าจากตารางที่เกี่ยวข้อง
- * - แสดงฟอร์มให้ปรับสถานะและหมายเหตุของแต่ละรายการ
- * Security notes:
- * - หลีกเลี่ยงการนำค่า location โดยตรงไปใช้เป็น table name หากค่ามาจากผู้ใช้ ต้องตรวจสอบ whitelist (ทำแล้ว)
+ * หน้าเช็คลิสต์สินค้าสำหรับแต่ละสถานที่
+ * Input (GET): location - ชื่อสถานที่
  */
 require_once __DIR__ . '/../../config.php';
+
 if (empty($_SESSION['user'])) {
-  header('Location: ../../login.php?error=3'); exit;
+    header('Location: ../../login.php?error=3'); 
+    exit;
 }
 
 $location = isset($_GET['location']) ? $_GET['location'] : '';
 $locations = ['เมืองสมุทรปราการ', 'พระประแดง', 'พระสมุทรเจดีย์', 'บางพลี', 'บางบ่อ', 'บางเสาธง'];
 
 if (!in_array($location, $locations, true)) { 
-    header('Location: ../location.php'); exit; 
+    header('Location: ../location.php'); 
+    exit; 
 }
 
-// เชื่อมต่อฐานข้อมูล checklist
 $conn_checklist = getChecklistConnection();
 if (!$conn_checklist) {
-    die('ไม่สามารถเชื่อมต่อฐานข้อมูลได้');
+    $_SESSION['error'] = 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้';
+    header('Location: ../location.php');
+    exit;
 }
 
 $table = $location;
 $sql = "SELECT `id`,`product_code`,`product_name`,`image_path`,`status`,`note` FROM `{$table}` ORDER BY `id` ASC";
 $res = mysqli_query($conn_checklist, $sql);
 if (!$res) { 
-    die('Query error: '.mysqli_error($conn_checklist)); 
+    $_SESSION['error'] = 'เกิดข้อผิดพลาดในการดึงข้อมูล: ' . mysqli_error($conn_checklist);
+    mysqli_close($conn_checklist);
+    header('Location: ../location.php');
+    exit;
 }
 
 $rows = [];
@@ -48,7 +47,6 @@ $page_title = 'เช็คลิสต์สินค้า - ' . htmlspecialch
 $current_path = '../../';
 $extra_css = ['../assets/location.css', 'checklist.css'];
 
-// รวม header template
 include __DIR__ . '/../../includes/header.php';
 ?>
   
@@ -56,7 +54,6 @@ include __DIR__ . '/../../includes/header.php';
     <div class="row justify-content-center">
       <div class="col-md-12">
         
-        <!-- Header Card -->
         <div class="card shadow-lg mb-4">
           <div class="card-header bg-primary text-white">
             <div class="d-flex justify-content-between align-items-center">
@@ -72,7 +69,6 @@ include __DIR__ . '/../../includes/header.php';
           </div>
         </div>
 
-        <!-- Messages -->
         <?php if (isset($_SESSION['message'])): ?>
           <div class="alert alert-success alert-custom alert-dismissible fade show" role="alert">
             <i class="bi bi-check-circle-fill me-2"></i>
@@ -89,14 +85,13 @@ include __DIR__ . '/../../includes/header.php';
           </div>
         <?php endif; ?>
 
-        <!-- Main Form Card -->
         <div class="card shadow-lg mb-4">
           <div class="card-header bg-light">
             <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>รายการสินค้า (<?php echo count($rows); ?> รายการ)</h5>
           </div>
           <div class="card-body">
-            <form method="post" action="save.php">
-              <input type="hidden" name="location" value="<?php echo htmlspecialchars($location); ?>">
+            <form method="post" action="save.php" id="checklistForm">
+              <input type="hidden" name="location" value="<?php echo htmlspecialchars($location); ?>">>
               
               <?php foreach ($rows as $r): 
                 $statusClass = '';
@@ -152,11 +147,15 @@ include __DIR__ . '/../../includes/header.php';
                       </div>
                       <div class="col-md-3">
                         <div class="mb-2">
-                          <label class="form-label small">หมายเหตุ</label>
-                          <input type="text" class="form-control form-control-sm" 
+                          <label class="form-label small">หมายเหตุ <span class="text-danger">*</span></label>
+                          <input type="text" class="form-control form-control-sm note-required" 
                                  name="note[<?php echo (int)$r['id']; ?>]" 
                                  placeholder="ยืนยันใส่เลข 1" 
-                                 value="<?php echo htmlspecialchars($r['note'] ?? ''); ?>">
+                                 value="<?php echo htmlspecialchars($r['note'] ?? ''); ?>"
+                                 required>
+                          <div class="invalid-feedback">
+                            กรุณาใส่หมายเหตุ
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -166,18 +165,15 @@ include __DIR__ . '/../../includes/header.php';
               
               <div class="d-flex justify-content-between align-items-center mt-4">
                 <div>
-                  <button type="button" class="btn btn-info btn-lg me-2" onclick="clearAllData('reset')" title="รีเซ็ตข้อมูลการตรวจสอบ (เก็บรายการสินค้าไว้)">
-                    <i class="bi bi-arrow-clockwise me-2"></i>รีเซ็ตข้อมูล
-                  </button>
-                  <button type="button" class="btn btn-danger btn-lg" onclick="clearAllData('delete_all')" title="ลบข้อมูลทั้งหมดออกจากฐานข้อมูล">
-                    <i class="bi bi-trash3-fill me-2"></i>ลบข้อมูลทั้งหมด
+                  <a href="summary.php?location=<?php echo urlencode($location); ?>" class="btn btn-warning btn-lg me-2">
+                    <i class="bi bi-clipboard-data me-2"></i>ดูสรุปผล
+                  </a>
+                  <button type="button" class="btn btn-danger btn-lg me-2" id="clearLatestBtn">
+                    <i class="bi bi-trash3 me-2"></i>เคลียร์ข้อมูลล่าสุด
                   </button>
                 </div>
                 <div>
-                  <button type="button" class="btn btn-warning btn-lg me-2" onclick="alert('ฟีเจอร์ถ่ายรูปยังไม่พร้อมใช้งาน');">
-                    <i class="bi bi-camera-fill me-2"></i>เพิ่มรูปถ่ายสินค้า
-                  </button>
-                  <button type="submit" class="btn btn-success btn-lg me-2">
+                  <button type="submit" class="btn btn-success btn-lg me-2" id="saveBtn">
                     <i class="bi bi-check2-all me-2"></i>บันทึกสถานะทั้งหมด
                   </button>
                   <a href="../location.php" class="btn btn-secondary btn-lg">
@@ -192,87 +188,91 @@ include __DIR__ . '/../../includes/header.php';
   </div>
 
 <?php
-// กำหนด JavaScript สำหรับหน้านี้
-$inline_js = '
-    function clearAllData(action) {
-      let confirmMessage = "";
-      if (action === "delete_all") {
-        confirmMessage = "คุณแน่ใจหรือไม่ที่จะลบข้อมูลทั้งหมดออกจากฐานข้อมูล?\\nการกระทำนี้จะลบรายการสินค้าทั้งหมดและไม่สามารถกู้คืนได้!";
-      } else {
-        confirmMessage = "คุณแน่ใจหรือไม่ที่จะรีเซ็ตข้อมูลการตรวจสอบ?\\nการกระทำนี้จะลบเฉพาะสถานะและหมายเหตุ แต่เก็บรายการสินค้าไว้";
-      }
-      
-      if (confirm(confirmMessage)) {
-        // สร้าง form สำหรับส่งข้อมูลไปยัง clear_data.php
-        const form = document.createElement("form");
-        form.method = "POST";
-        form.action = "clear_data.php";
-        
-        // เพิ่ม input สำหรับ location
-        const locationInput = document.createElement("input");
-        locationInput.type = "hidden";
-        locationInput.name = "location";
-        locationInput.value = "' . htmlspecialchars($location) . '";
-        form.appendChild(locationInput);
-        
-        // เพิ่ม input สำหรับ action
-        const actionInput = document.createElement("input");
-        actionInput.type = "hidden";
-        actionInput.name = "action";
-        actionInput.value = action;
-        form.appendChild(actionInput);
-        
-        // เพิ่ม form เข้าไปใน body และ submit
-        document.body.appendChild(form);
-        form.submit();
-      }
-    }
-    
-    function showMessage(message, type) {
-      // ลบ alert เก่าออกก่อน
-      const existingAlert = document.querySelector(".alert");
-      if (existingAlert) {
-        existingAlert.remove();
-      }
-      
-      // สร้าง alert ใหม่
-      const alertDiv = document.createElement("div");
-      alertDiv.className = `alert alert-${type} alert-custom alert-dismissible fade show`;
-      alertDiv.innerHTML = `
-        <i class="bi bi-${type === "success" ? "check-circle-fill" : "exclamation-circle-fill"} me-2"></i>
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-      `;
-      
-      // แทรกข้อความก่อน main form card
-      const mainCard = document.querySelector(".card.shadow-lg.mb-4:last-of-type");
-      mainCard.parentNode.insertBefore(alertDiv, mainCard);
-      
-      // ลบข้อความหลังจาก 5 วินาที
-      setTimeout(() => {
-        if (alertDiv) {
-          alertDiv.remove();
-        }
-      }, 5000);
-    }
-    
-    // เพิ่ม event listener สำหรับการเปลี่ยนสี status card เมื่อเลือก radio button
-    document.addEventListener("DOMContentLoaded", function() {
-      const radioButtons = document.querySelectorAll("input[type=\"radio\"]");
-      radioButtons.forEach(radio => {
-        radio.addEventListener("change", function() {
-          if (this.checked) {
-            const card = this.closest(".status-card");
-            // ลบ class สถานะเก่าทั้งหมด
-            card.classList.remove("status-in_stock", "status-out_of_stock", "status-not_for_sale", "status-none");
-            // เพิ่ม class สถานะใหม่
-            card.classList.add("status-" + this.value);
-          }
-        });
-      });
-    });
-';
-
-// รวม footer template
 include __DIR__ . '/../../includes/footer.php';
 ?>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Checklist page loaded');
+    
+    // Form validation and submission
+    const form = document.getElementById('checklistForm');
+    const saveBtn = document.getElementById('saveBtn');
+    
+    if (form && saveBtn) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            let isValid = true;
+            const noteInputs = document.querySelectorAll('.note-required');
+            
+            // Reset validation states
+            noteInputs.forEach(input => {
+                input.classList.remove('is-invalid', 'is-valid');
+            });
+            
+            // Check each note input
+            noteInputs.forEach(input => {
+                if (!input.value.trim()) {
+                    input.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    input.classList.add('is-valid');
+                }
+            });
+            
+            if (!isValid) {
+                alert('กรุณาใส่หมายเหตุให้ครบทุกรายการ');
+                // Scroll to first invalid input
+                const firstInvalid = document.querySelector('.note-required.is-invalid');
+                if (firstInvalid) {
+                    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstInvalid.focus();
+                }
+                return;
+            }
+            
+            // Show loading state
+            const originalText = saveBtn.innerHTML;
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>กำลังบันทึก...';
+            saveBtn.disabled = true;
+            
+            // Submit form
+            this.submit();
+        });
+    }
+    
+    // Clear latest data functionality
+    const clearLatestBtn = document.getElementById('clearLatestBtn');
+    if (clearLatestBtn) {
+        clearLatestBtn.addEventListener('click', function() {
+            if (confirm('คุณต้องการเคลียร์ข้อมูลล่าสุดที่บันทึกไว้หรือไม่?')) {
+                const location = '<?php echo addslashes($location); ?>';
+                const clearBtn = this;
+                const originalText = clearBtn.innerHTML;
+                
+                // Show loading state
+                clearBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>กำลังเคลียร์...';
+                clearBtn.disabled = true;
+                
+                // Navigate to clear page
+                window.location.href = 'clear_latest.php?location=' + encodeURIComponent(location);
+            }
+        });
+    }
+    
+    // Real-time note validation
+    document.querySelectorAll('.note-required').forEach(input => {
+        input.addEventListener('input', function() {
+            if (this.value.trim()) {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            } else {
+                this.classList.remove('is-valid');
+            }
+        });
+    });
+    
+    console.log('✅ Event listeners attached successfully');
+});
+</script>

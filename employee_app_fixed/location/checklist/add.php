@@ -1,78 +1,76 @@
 <?php
 /**
  * add.php
- * บันทึกรายการใหม่ลงในตาราง checklist ของสถานที่ที่เลือก
+ * เพิ่มรายการสินค้าใหม่ในตาราง
  * Input (POST):
- * - location (string) - ชื่อสถานที่ (ใช้เป็นชื่อ table)
- * - product_code (string)
- * - product_name (string)
- * - image_path (string|null)
- * - status (in_stock|out_of_stock|not_for_sale|null)
- * สิ่งที่สคริปต์ทำ:
- * - ตรวจสอบ session และ method
- * - ตรวจสอบค่า location ให้เป็นหนึ่งในรายการที่อนุญาต
- * - เชื่อมต่อฐานข้อมูล checklist ผ่าน getChecklistConnection()
- * - ใช้ prepared statement ในการ INSERT เพื่อความปลอดภัย
+ * - location (string) - ชื่อสถานที่
+ * - product_code (string) - รหัสสินค้า
+ * - product_name (string) - ชื่อสินค้า
+ * - image_path (string) - path รูปภาพ (optional)
  */
 require_once __DIR__ . '/../../config.php';
+
 if (empty($_SESSION['user'])) {
-    header('Location: ../../login.php?error=3'); exit;
+  header('Location: ../../login.php?error=3'); 
+  exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') { 
-    header('Location: ../location.php'); exit; 
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: ../location.php'); 
+    exit;
 }
 
 $location = isset($_POST['location']) ? $_POST['location'] : '';
+$product_code = isset($_POST['product_code']) ? trim($_POST['product_code']) : '';
+$product_name = isset($_POST['product_name']) ? trim($_POST['product_name']) : '';
+$image_path = isset($_POST['image_path']) ? trim($_POST['image_path']) : '';
+
 $locations = ['เมืองสมุทรปราการ', 'พระประแดง', 'พระสมุทรเจดีย์', 'บางพลี', 'บางบ่อ', 'บางเสาธง'];
 
 if (!in_array($location, $locations, true)) { 
-    die('สถานที่ไม่ถูกต้อง'); 
+    header('Location: ../location.php'); 
+    exit; 
+}
+
+if (empty($product_code) || empty($product_name)) {
+    $_SESSION['error'] = 'กรุณากรอกรหัสสินค้าและชื่อสินค้า';
+    header('Location: checklist.php?location=' . urlencode($location)); 
+    exit;
 }
 
 // เชื่อมต่อฐานข้อมูล checklist
 $conn_checklist = getChecklistConnection();
 if (!$conn_checklist) {
-    die('ไม่สามารถเชื่อมต่อฐานข้อมูลได้');
-}
-
-$table = $location;
-
-$code = isset($_POST['product_code']) ? trim($_POST['product_code']) : '';
-$name = isset($_POST['product_name']) ? trim($_POST['product_name']) : '';
-$img  = isset($_POST['image_path']) ? trim($_POST['image_path']) : NULL;
-$st   = isset($_POST['status']) && $_POST['status'] !== '' ? $_POST['status'] : NULL;
-
-if ($code === '' || $name === '') { 
-    $_SESSION['error'] = 'ข้อมูลไม่ครบ'; 
-    header('Location: checklist.php?location=' . urlencode($location));
+    $_SESSION['error'] = 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้';
+    header('Location: checklist.php?location=' . urlencode($location)); 
     exit;
 }
 
-if ($st !== NULL && !in_array($st, ['in_stock','out_of_stock','not_for_sale'], true)) { 
-    $st = NULL; 
-}
-
-$sql = "INSERT INTO `{$table}` (`product_code`,`product_name`,`image_path`,`status`) VALUES (?,?,?,?)";
+// เพิ่มรายการใหม่
+$sql = "INSERT INTO `{$location}` (`product_code`, `product_name`, `image_path`, `status`) VALUES (?, ?, ?, 'in_stock')";
 $stmt = mysqli_prepare($conn_checklist, $sql);
-if (!$stmt) { 
-    $_SESSION['error'] = 'Prepare failed: '.mysqli_error($conn_checklist); 
-    header('Location: checklist.php?location=' . urlencode($location));
-    exit;
-}
 
-mysqli_stmt_bind_param($stmt, 'ssss', $code, $name, $img, $st);
-if (!mysqli_stmt_execute($stmt)) {
-    if (mysqli_errno($conn_checklist) == 1062) { 
-        $_SESSION['error'] = 'รหัสสินค้านี้มีอยู่แล้ว'; 
+if ($stmt) {
+    mysqli_stmt_bind_param($stmt, 'sss', $product_code, $product_name, $image_path);
+    
+    if (mysqli_stmt_execute($stmt)) {
+        $_SESSION['message'] = "เพิ่มรายการสินค้าใหม่สำเร็จ: {$product_name}";
     } else {
-        $_SESSION['error'] = 'เกิดข้อผิดพลาดในการเพิ่มข้อมูล';
+        $error = mysqli_stmt_error($stmt);
+        if (strpos($error, 'Duplicate entry') !== false) {
+            $_SESSION['error'] = "รหัสสินค้า {$product_code} มีอยู่แล้วในระบบ";
+        } else {
+            $_SESSION['error'] = "เกิดข้อผิดพลาดในการเพิ่มรายการ: " . $error;
+        }
     }
+    
+    mysqli_stmt_close($stmt);
 } else {
-    $_SESSION['message'] = 'เพิ่มสินค้าใหม่สำเร็จ';
+    $_SESSION['error'] = "เกิดข้อผิดพลาดในการเตรียมคำสั่ง SQL";
 }
 
-mysqli_stmt_close($stmt);
 mysqli_close($conn_checklist);
+
 header('Location: checklist.php?location=' . urlencode($location));
 exit;
+?>
