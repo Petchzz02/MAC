@@ -1,4 +1,12 @@
 <?php 
+/**
+ * nav.php
+ * ส่วนเมนูนำทาง (navigation) ที่เรียกใช้ในหลายหน้า
+ * คำอธิบาย:
+ * - แสดงเมนูเฉพาะเมื่อผู้ใช้ล็อกอิน
+ * - ไฟล์นี้ไม่ควรส่ง header หรือ redirect (เฉพาะ markup + script)
+ * - หากต้องการใช้ในโฟลเดอร์ย่อย ให้ปรับ path (header.php จะช่วยทำให้ถูกต้อง)
+ */
 if (session_status() === PHP_SESSION_NONE) { 
     session_start(); 
 }

@@ -1,7 +1,20 @@
 <?php
+/**
+ * checklist.php
+ * แสดงรายการเช็คลิสต์ของสถานที่ที่เลือก
+ * Input (GET):
+ * - location (string) - ชื่อสถานที่ (ใช้เป็นชื่อ table)
+ * Behavior:
+ * - ตรวจสอบ session
+ * - ตรวจสอบว่า location อยู่ในรายการที่อนุญาต
+ * - ดึงข้อมูลรายการสินค้าจากตารางที่เกี่ยวข้อง
+ * - แสดงฟอร์มให้ปรับสถานะและหมายเหตุของแต่ละรายการ
+ * Security notes:
+ * - หลีกเลี่ยงการนำค่า location โดยตรงไปใช้เป็น table name หากค่ามาจากผู้ใช้ ต้องตรวจสอบ whitelist (ทำแล้ว)
+ */
 require_once __DIR__ . '/../../config.php';
 if (empty($_SESSION['user'])) {
-    header('Location: ../../login.php?error=3'); exit;
+  header('Location: ../../login.php?error=3'); exit;
 }
 
 $location = isset($_GET['location']) ? $_GET['location'] : '';

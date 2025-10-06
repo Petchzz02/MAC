@@ -1,7 +1,14 @@
 <?php require_once __DIR__ . '/config.php'; 
-// ถ้าล็อกอินแล้ว ไปหน้า index
+/**
+ * login.php
+ * หน้าเข้าสู่ระบบ (login form)
+ * - แสดงฟอร์มกรอกรหัสพนักงานและรหัสผ่าน
+ * - ถ้าผู้ใช้ล็อกอินอยู่แล้ว จะ redirect ไปยังหน้า index
+ * - อ่านพารามิเตอร์ error เพื่อแสดงข้อความเตือน
+ */
+// ถ้าล็อกอินแล้ว ให้ไปหน้าหลักทันที
 if (!empty($_SESSION['user'])) {
-    header('Location: index.php'); exit;
+  header('Location: index.php'); exit;
 }
 $err = isset($_GET['error']) ? (int)$_GET['error'] : 0;
 ?>

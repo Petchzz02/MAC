@@ -1,4 +1,19 @@
 <?php
+/**
+ * add.php
+ * บันทึกรายการใหม่ลงในตาราง checklist ของสถานที่ที่เลือก
+ * Input (POST):
+ * - location (string) - ชื่อสถานที่ (ใช้เป็นชื่อ table)
+ * - product_code (string)
+ * - product_name (string)
+ * - image_path (string|null)
+ * - status (in_stock|out_of_stock|not_for_sale|null)
+ * สิ่งที่สคริปต์ทำ:
+ * - ตรวจสอบ session และ method
+ * - ตรวจสอบค่า location ให้เป็นหนึ่งในรายการที่อนุญาต
+ * - เชื่อมต่อฐานข้อมูล checklist ผ่าน getChecklistConnection()
+ * - ใช้ prepared statement ในการ INSERT เพื่อความปลอดภัย
+ */
 require_once __DIR__ . '/../../config.php';
 if (empty($_SESSION['user'])) {
     header('Location: ../../login.php?error=3'); exit;

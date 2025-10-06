@@ -1,6 +1,19 @@
 <?php
 require_once __DIR__ . '/config.php';
 
+/**
+ * login_db.php
+ * ประมวลผลการล็อกอิน
+ * - รับข้อมูลจาก POST (employee_id, password)
+ * - ดึงข้อมูล user จากตาราง employees
+ * - รองรับทั้งรหัสผ่านแบบ hashed (password_hash) และของเดิมที่เป็น plain
+ * - ถ้าเป็น plain จะทำการ migrate ไปเป็น hash โดยอัตโนมัติ
+ * - ตั้งค่า session และป้องกัน session fixation
+ * ความปลอดภัยที่มี:
+ * - ใช้ prepared statements เพื่อลด SQL injection
+ * - ใช้ password_verify สำหรับ hash
+ */
+
 try {
     // ป้องกันการยิงตรงนอก POST
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -15,7 +28,7 @@ try {
         header('Location: login.php?error=1'); exit;
     }
 
-    // ใช้ชื่อตารางภาษาอังกฤษ
+    // ดึงข้อมูลผู้ใช้จากตาราง employees
     $sql = "SELECT `ID`,`fname`,`lname`,`email`,`employee_id`,`Password`
             FROM `employees`
             WHERE `employee_id` = ?
@@ -41,7 +54,7 @@ try {
             if (hash_equals($stored, $password)) {
                 $login_ok = true;
 
-                // auto-migrate: อัปเดตเป็น hash ทันที
+                // auto-migrate: อัปเดตเป็น hash ทันที (ปรับปรุงความปลอดภัย)
                 $newHash = password_hash($password, PASSWORD_DEFAULT);
                 $up = mysqli_prepare($conn, "UPDATE `employees` SET `Password` = ? WHERE `ID` = ?");
                 if ($up) {
@@ -53,7 +66,7 @@ try {
         }
 
         if ($login_ok) {
-            // ตั้ง session
+            // ตั้ง session สำหรับผู้ใช้
             $_SESSION['user'] = [
                 'id' => (int)$row['ID'],
                 'employee_id' => $row['employee_id'],
@@ -72,6 +85,6 @@ try {
     header('Location: login.php?error=1'); exit;
 
 } catch (Throwable $e) {
-    // ในโปรดักชันควรล็อกไฟล์ ไม่ echo ข้อความจริงให้ผู้ใช้เห็น
+    // ในโปรดักชันควรล็อกข้อผิดพลาดลงไฟล์แทนการแสดงข้อความ
     header('Location: login.php?error=2'); exit;
 }

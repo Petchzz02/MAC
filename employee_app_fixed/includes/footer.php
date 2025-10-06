@@ -14,5 +14,12 @@
             <?php echo $inline_js; ?>
         </script>
     <?php endif; ?>
+
+    <!--
+        includes/footer.php
+        - ปลายทางของทุกหน้า (ปิด tag body/html)
+        - จุดนี้เป็นที่เหมาะสำหรับเพิ่มสคริปต์เฉพาะหน้าด้วยตัวแปร $extra_js หรือ $inline_js
+        - โปรดระวังการ echo โค้ดจากตัวแปรตรงๆ หากข้อมูลมาจากผู้ใช้ ให้ sanitize ก่อน
+    -->
 </body>
 </html>

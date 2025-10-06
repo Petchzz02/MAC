@@ -1,4 +1,15 @@
 <?php
+/**
+ * clear_data.php
+ * ใช้สำหรับลบหรือรีเซ็ตข้อมูลเช็คลิสต์ของสถานที่
+ * Input (POST):
+ * - location (string) - ชื่อสถานที่
+ * - action (string) - 'reset' (รีเซ็ตสถานะ/หมายเหตุ) หรือ 'delete_all' (ลบแถวทั้งหมด)
+ * Behavior:
+ * - ตรวจสอบ session และ method
+ * - ตรวจสอบว่า location อยู่ใน whitelist
+ * - ดำเนินการตามค่า action
+ */
 require_once __DIR__ . '/../../config.php';
 if (empty($_SESSION['user'])) {
     header('Location: ../../login.php?error=3'); 

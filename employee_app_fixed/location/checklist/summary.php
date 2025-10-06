@@ -1,12 +1,20 @@
 <?php
+/**
+ * summary.php
+ * แสดงสรุปผลการตรวจสอบเช็คลิสต์แบบรวมของแต่ละสถานที่
+ * Behavior:
+ * - เชื่อมต่อฐานข้อมูล checklist และเรียกข้อมูลสรุปแต่ละตารางสถานที่
+ * - คำนวณสถิติ (total, in_stock, out_of_stock, not_for_sale, pending)
+ * - แสดงการ์ดสรุปและสถิติรวม
+ */
 require_once __DIR__ . '/../../config.php';
 if (empty($_SESSION['user'])) {
-    header('Location: ../../login.php?error=3'); exit;
+  header('Location: ../../login.php?error=3'); exit;
 }
 
 $conn_checklist = getChecklistConnection();
 if (!$conn_checklist) {
-    die('ไม่สามารถเชื่อมต่อฐานข้อมูลได้');
+  die('ไม่สามารถเชื่อมต่อฐานข้อมูลได้');
 }
 
 $locations = ['เมืองสมุทรปราการ', 'พระประแดง', 'พระสมุทรเจดีย์', 'บางพลี', 'บางบ่อ', 'บางเสาธง'];

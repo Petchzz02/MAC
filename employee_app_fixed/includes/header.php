@@ -1,17 +1,26 @@
 <?php
 /**
- * Header Template สำหรับระบบพนักงาน MAC
- * รวมส่วน authentication check, HTML head, และ navigation
+ * includes/header.php
+ * Template ส่วนหัวของหน้า (HTML head + navigation)
+ * คำอธิบาย:
+ * - ทำหน้าที่แสดง <head> ของ HTML และเมนูนำทาง
+ * - ตรวจสอบการล็อกอิน (auth) ยกเว้นเมื่อกำหนด $skip_auth = true
+ * ตัวแปรที่รองรับเมื่อต้องการปรับแต่ง:
+ * - $page_title (string) - ชื่อเรื่องของหน้า
+ * - $current_path (string) - path ที่จะถูก prefix ให้ asset และลิงก์ (เช่น '../' หรือ '../../')
+ * - $include_nav (bool) - กำหนดว่าจะ include navigation หรือไม่
+ * - $extra_css (array) - เพิ่มไฟล์ CSS เฉพาะหน้า
+ * - $extra_head (string) - HTML/inline CSS/JS ที่ต้องใส่ใน <head>
  */
 
-// กำหนดค่าเริ่มต้น
+// กำหนดค่าเริ่มต้นสำหรับตัวแปรที่อาจจะไม่ได้ส่งมา
 $page_title = isset($page_title) ? $page_title : 'ระบบพนักงาน MAC';
 $current_path = isset($current_path) ? $current_path : '';
 $include_nav = isset($include_nav) ? $include_nav : true;
 $extra_css = isset($extra_css) ? $extra_css : [];
 $extra_head = isset($extra_head) ? $extra_head : '';
 
-// Authentication check - ตรวจสอบการเข้าสู่ระบบ
+// Authentication check - ตรวจสอบการเข้าสู่ระบบ (ยกเว้นเมื่อ $skip_auth = true)
 if (!isset($skip_auth) || !$skip_auth) {
     require_once __DIR__ . '/../config.php';
     if (empty($_SESSION['user'])) {

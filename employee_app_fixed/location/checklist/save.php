@@ -1,4 +1,16 @@
 <?php
+/**
+ * save.php
+ * ประมวลผลการบันทึกสถานะและหมายเหตุของรายการเช็คลิสต์
+ * Input (POST):
+ * - location (string)
+ * - status (array) => status[id] = 'in_stock'|'out_of_stock'|'not_for_sale'
+ * - note (array) => note[id] = '...'
+ * Behavior:
+ * - ตรวจสอบ session และ method
+ * - ตรวจสอบ whitelist ของ location
+ * - อัปเดต `status` และ `note` ทีละรายการโดยใช้ prepared statements
+ */
 require_once __DIR__ . '/../../config.php';
 if (empty($_SESSION['user'])) {
     header('Location: ../../login.php?error=3'); exit;

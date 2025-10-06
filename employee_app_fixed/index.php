@@ -1,10 +1,16 @@
 <?php
+/**
+ * index.php
+ * หน้าหลักของระบบหลังล็อกอิน
+ * - ตั้งตัวแปรสำหรับ header template (title, path, extra css)
+ * - รวม header และ footer จาก includes
+ */
 // กำหนดค่าสำหรับ header template
 $page_title = 'หน้าหลัก MAC';
 $current_path = '';
 $extra_css = ['assets/index.css'];
 
-// รวม header template
+// รวม header template (ซึ่งจะตรวจสอบ session ด้วย)
 include __DIR__ . '/includes/header.php';
 ?>
     
