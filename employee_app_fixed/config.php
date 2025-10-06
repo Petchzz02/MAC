@@ -1,0 +1,44 @@
+<?php
+// เปิด error เฉพาะช่วง dev (ลบทิ้งในโปรดักชัน)
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+$DB_HOST = 'localhost';
+$DB_USER = 'root';
+$DB_PASS = '';
+$DB_NAME = 'db_employee';
+
+$conn = mysqli_connect($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME);
+if (!$conn) {
+    die('Database connection failed: ' . mysqli_connect_error());
+}
+
+// สำคัญมาก: ตั้ง charset ให้รองรับภาษาไทย
+if (!mysqli_set_charset($conn, 'utf8mb4')) {
+    die('Error loading character set utf8mb4: ' . mysqli_error($conn));
+}
+
+// ฟังก์ชันสำหรับเชื่อมต่อกับฐานข้อมูล checklist
+function getChecklistConnection() {
+    $DB_HOST = 'localhost';
+    $DB_USER = 'root';
+    $DB_PASS = '';
+    $DB_CHECKLIST = 'db_sp_checklist';
+    
+    $conn_checklist = mysqli_connect($DB_HOST, $DB_USER, $DB_PASS, $DB_CHECKLIST);
+    if (!$conn_checklist) {
+        return null;
+    }
+    
+    if (!mysqli_set_charset($conn_checklist, 'utf8mb4')) {
+        mysqli_close($conn_checklist);
+        return null;
+    }
+    
+    return $conn_checklist;
+}
+
+// start session ให้ทุกหน้าที่ include ไฟล์นี้
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
