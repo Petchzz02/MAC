@@ -235,6 +235,9 @@ include __DIR__ . '/../../includes/header.php';
                   <a href="summary.php?location=<?php echo urlencode($location); ?>" class="btn btn-warning btn-lg me-2">
                     <i class="bi bi-clipboard-data me-2"></i>ดูสรุปผล
                   </a>
+                  <button type="button" class="btn btn-outline-danger btn-lg me-2" id="resetBtn">
+                    <i class="bi bi-trash3 me-2"></i>ล้างข้อมูล
+                  </button>
                 </div>
                 <div>
                   <button type="submit" class="btn btn-success btn-lg me-2" id="saveBtn">
@@ -262,6 +265,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Form validation and submission
     const form = document.getElementById('checklistForm');
     const saveBtn = document.getElementById('saveBtn');
+    const resetBtn = document.getElementById('resetBtn');
     
     if (form && saveBtn) {
         form.addEventListener('submit', function(e) {
@@ -306,6 +310,88 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Reset button functionality
+    if (resetBtn) {
+        resetBtn.addEventListener('click', function() {
+            // แสดง confirmation dialog
+            const confirmReset = confirm('คุณต้องการล้างข้อมูลทั้งหมดหรือไม่ ข้อมูลที่กรอกทั้งหมดจะถูกลบออก');
+            
+            if (confirmReset) {
+                clearAllFormData();
+            }
+        });
+    }
+    
+    // ฟังก์ชันล้างข้อมูลทั้งหมดให้เป็นค่าว่าง
+    function clearAllFormData() {
+        console.log('�️ Clearing all form data...');
+        
+        // ล้าง radio buttons ทั้งหมด
+        document.querySelectorAll('input[type="radio"]').forEach(radio => {
+            radio.checked = false;
+        });
+        
+        // ล้าง text inputs ทั้งหมด (ล้างให้เป็นค่าว่าง)
+        document.querySelectorAll('.note-required').forEach(input => {
+            input.value = ''; // ล้างค่าให้เป็นช่องว่าง
+            input.classList.remove('is-invalid', 'is-valid');
+        });
+        
+        // อัปเดต status cards ให้เป็นสถานะว่าง
+        updateStatusCards();
+        
+        // แสดงข้อความแจ้งเตือน
+        showClearNotification();
+        
+        console.log('✅ All form data cleared');
+    }
+    
+    // อัปเดตสีของ status cards ตาม radio button ที่เลือก
+    function updateStatusCards() {
+        document.querySelectorAll('.status-card').forEach(card => {
+            // ลบ class สถานะเดิม
+            card.classList.remove('status-in_stock', 'status-out_of_stock', 'status-not_for_sale', 'status-none');
+            
+            // หา radio button ที่ checked ใน card นี้
+            const checkedRadio = card.querySelector('input[type="radio"]:checked');
+            
+            if (checkedRadio) {
+                const statusClass = 'status-' + checkedRadio.value;
+                card.classList.add(statusClass);
+            } else {
+                card.classList.add('status-none');
+            }
+        });
+    }
+    
+    // แสดงข้อความแจ้งเตือนการล้างข้อมูล
+    function showClearNotification() {
+        // สร้าง notification element
+        const notification = document.createElement('div');
+        notification.className = 'alert alert-success alert-dismissible fade show position-fixed';
+        notification.style.cssText = `
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        `;
+        notification.innerHTML = `
+            <i class="bi bi-check-circle-fill me-2"></i>
+            ข้อมูลทั้งหมดถูกล้างออกแล้ว
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // ลบ notification หลัง 3 วินาที
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 3000);
+    }
+    
     // Real-time note validation
     document.querySelectorAll('.note-required').forEach(input => {
         input.addEventListener('input', function() {
@@ -317,6 +403,16 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+    
+    // Real-time status card update เมื่อเปลี่ยน radio button
+    document.querySelectorAll('input[type="radio"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            updateStatusCards();
+        });
+    });
+    
+    // เรียกใช้ครั้งแรกเพื่อตั้งค่าสีเริ่มต้น
+    updateStatusCards();
     
     console.log('✅ Event listeners attached successfully');
 });
