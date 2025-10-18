@@ -77,9 +77,11 @@ if (!$table_exists) {
     exit;
 }
 
-// เตรียม SQL statement อย่างปลอดภัย
+// เตรียม SQL statement อย่างปลอดภัย - เพิ่มการจัดกลุ่มตามประเภท
 $sql = sprintf(
-    "SELECT `id`, `product_code`, `product_name`, `image_path`, `status`, `note` FROM `%s` ORDER BY `id` ASC",
+    "SELECT `id`, `product_code`, `product_name`, `image_path`, `status`, `note`, 
+     COALESCE(`category`, 'เครื่องดื่ม') as `category`
+     FROM `%s` ORDER BY `category` ASC, `id` ASC",
     mysqli_real_escape_string($conn_checklist, $safe_table_name)
 );
 
@@ -108,6 +110,16 @@ while ($row = mysqli_fetch_assoc($res)) {
     $rows[] = $row; 
 }
 mysqli_close($conn_checklist);
+
+// จัดกลุ่มข้อมูลตามประเภท
+$grouped_products = [];
+foreach ($rows as $row) {
+    $category = $row['category'];
+    if (!isset($grouped_products[$category])) {
+        $grouped_products[$category] = [];
+    }
+    $grouped_products[$category][] = $row;
+}
 
 // กำหนดค่าสำหรับ header template
 $page_title = 'เช็คลิสต์สินค้า - ' . htmlspecialchars($location);
@@ -160,15 +172,34 @@ include __DIR__ . '/../../includes/header.php';
             <form method="post" action="save.php" id="checklistForm">
               <input type="hidden" name="location" value="<?php echo htmlspecialchars($location); ?>">
               
-              <?php foreach ($rows as $r): 
-                $statusClass = '';
-                switch ($r['status']) {
-                  case 'in_stock': $statusClass = 'status-in_stock'; break;
-                  case 'out_of_stock': $statusClass = 'status-out_of_stock'; break;
-                  case 'not_for_sale': $statusClass = 'status-not_for_sale'; break;
-                  default: $statusClass = 'status-none'; break;
-                }
-              ?>
+              <?php 
+              // กำหนดไอคอนสำหรับแต่ละหมวดหมู่
+              $category_icons = [
+                'เครื่องดื่ม' => 'bi-droplet-fill',
+                'ขนม' => 'bi-emoji-smile-fill'
+              ];
+              
+              // แสดงสินค้าแยกตามหมวดหมู่
+              foreach ($grouped_products as $category => $products): ?>
+                <div class="category-section mb-4">
+                  <div class="category-header">
+                    <h4 class="category-title">
+                      <i class="<?php echo isset($category_icons[$category]) ? $category_icons[$category] : 'bi-box-fill'; ?> me-2"></i>
+                      <?php echo htmlspecialchars($category); ?> 
+                      <span class="badge bg-primary ms-2"><?php echo count($products); ?> รายการ</span>
+                    </h4>
+                    <hr class="category-divider">
+                  </div>
+                  
+                  <?php foreach ($products as $r): 
+                    $statusClass = '';
+                    switch ($r['status']) {
+                      case 'in_stock': $statusClass = 'status-in_stock'; break;
+                      case 'out_of_stock': $statusClass = 'status-out_of_stock'; break;
+                      case 'not_for_sale': $statusClass = 'status-not_for_sale'; break;
+                      default: $statusClass = 'status-none'; break;
+                    }
+                  ?>
                 <div class="card mb-3 status-card <?php echo $statusClass; ?>">
                   <div class="card-body">
                     <div class="row align-items-center">
@@ -227,6 +258,8 @@ include __DIR__ . '/../../includes/header.php';
                       </div>
                     </div>
                   </div>
+                </div>
+              <?php endforeach; ?>
                 </div>
               <?php endforeach; ?>
               

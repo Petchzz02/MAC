@@ -129,7 +129,53 @@ body {
     box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.25);
 }
 
-/* Button Styles */
+/* Category Section Styles */
+.category-section {
+    margin-bottom: 3rem;
+}
+
+.category-header {
+    margin-bottom: 2rem;
+}
+
+.category-title {
+    color: #1e293b;
+    font-weight: 600;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.category-title i {
+    font-size: 1.3rem;
+    margin-right: 0.5rem;
+}
+
+/* ไอคอนสำหรับหมวดหมู่เครื่องดื่ม */
+.category-title .bi-droplet-fill {
+    color: #06b6d4;
+}
+
+/* ไอคอนสำหรับหมวดหมู่ขนม */
+.category-title .bi-emoji-smile-fill {
+    color: #f59e0b;
+}
+
+.category-title .badge {
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.category-divider {
+    border: none;
+    height: 3px;
+    background: linear-gradient(90deg, #4f46e5, #06b6d4);
+    border-radius: 5px;
+    margin: 1rem 0 2rem 0;
+}
+
+/* Enhanced Status Card Colors */
 .btn {
     border-radius: 8px;
     font-weight: 500;
@@ -288,6 +334,23 @@ body {
     #resetBtn {
         font-size: 0.8rem;
         padding: 0.4rem 0.8rem;
+    }
+    
+    /* Category responsive */
+    .category-title {
+        font-size: 1.2rem;
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: center;
+    }
+    
+    .category-title .badge {
+        margin-top: 0.5rem;
+        margin-left: 0;
+    }
+    
+    .category-section {
+        margin-bottom: 2rem;
     }
 }
 
