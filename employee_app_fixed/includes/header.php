@@ -101,3 +101,6 @@ if (!isset($skip_auth) || !$skip_auth) {
         }
         ?>
     <?php endif; ?>
+
+    <!-- Main Content Area -->
+    <main class="main-content">

@@ -126,6 +126,7 @@ body {
 
 .stat-item {
     text-align: center;
+    flex: 1;
 }
 
 .stat-number {
@@ -295,6 +296,14 @@ body {
     .stat-box {
         margin-bottom: 1rem;
     }
+    
+    .location-stats {
+        gap: 1rem;
+    }
+    
+    .stat-item {
+        font-size: 0.9rem;
+    }
 }
 
 @media (max-width: 576px) {
@@ -313,6 +322,20 @@ body {
     .location-btn {
         padding: 0.6rem 1.2rem;
         font-size: 0.9rem;
+    }
+    
+    .location-stats {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .stat-item {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    
+    .stat-item:last-child {
+        border-bottom: none;
     }
 }
 

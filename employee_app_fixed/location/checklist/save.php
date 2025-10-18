@@ -3,8 +3,20 @@
  * save.php
  * บันทึกข้อมูลการตรวจสอบสินค้าจากฟอร์ม
  * Input (POST):
- * - location (string) - ชื่อสถานที่
- * - status[id] (array) - สถานะของแต่ละรายการ
+ * - location (string) - ชื่อ        // อัปเดตข้อมูลด้วย Prepared Statement
+        // ใช้ sprintf เพื่อป้องกันปัญหา SQL injection โดยไม่ใช้ placeholder สำหรับ table name
+        $escaped_table = mysqli_real_escape_string($conn, $table);
+        $sql = sprintf(
+            "UPDATE `%s` SET `status` = ?, `note` = ?, `updated_at` = NOW() WHERE `id` = ?",
+            $escaped_table
+        );
+        
+        $stmt = mysqli_prepare($conn, $sql);
+        if (!$stmt) {
+            throw new Exception("ไม่สามารถเตรียม statement ได้: " . mysqli_error($conn));
+        }
+        
+        mysqli_stmt_bind_param($stmt, 'ssi', $status, $note, $id);status[id] (array) - สถานะของแต่ละรายการ
  * - note[id] (array) - หมายเหตุของแต่ละรายการ
  */
 session_start();
@@ -41,29 +53,52 @@ if (empty($status_array) || empty($note_array)) {
 }
 
 // เชื่อมต่อฐานข้อมูล
-$conn = getChecklistConnection();
-if (!$conn) {
-    $_SESSION['error'] = 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้';
-    header('Location: checklist.php?location=' . urlencode($location)); 
-    exit;
-}
-
-// เริ่มต้น Transaction
+    $conn = getChecklistConnection();
+    if (!$conn) {
+        $_SESSION['error'] = 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้';
+        header('Location: checklist.php?location=' . urlencode($location)); 
+        exit;
+    }
+    
+    // เพิ่มการตั้งค่า charset
+    mysqli_query($conn, "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci");
+    mysqli_query($conn, "SET character_set_connection=utf8mb4");
+    mysqli_query($conn, "SET character_set_client=utf8mb4");
+    mysqli_query($conn, "SET character_set_results=utf8mb4");
+    
+    // เพิ่มการ debug
+    error_log("=== Save.php Debug Info ===");
+    error_log("Location: " . $location);
+    error_log("Status array count: " . count($status_array));
+    error_log("Note array count: " . count($note_array));// เริ่มต้น Transaction
 mysqli_begin_transaction($conn);
 
 try {
     $updated_count = 0;
     $table = $location;
-    $user_id = $_SESSION['user']['employee_id'] ?? $_SESSION['user']['id'];
     
-    // ตรวจสอบว่าตารางมีอยู่จริง
-    $table_check = mysqli_prepare($conn, "SHOW TABLES LIKE ?");
-    mysqli_stmt_bind_param($table_check, 's', $table);
-    mysqli_stmt_execute($table_check);
-    $table_result = mysqli_stmt_get_result($table_check);
-    mysqli_stmt_close($table_check);
+    // ตรวจสอบว่าตารางมีอยู่จริง โดยใช้วิธีที่ปลอดภัย
+    $valid_tables = ['เมืองสมุทรปราการ', 'พระประแดง', 'พระสมุทรเจดีย์', 'บางพลี', 'บางบ่อ', 'บางเสาธง'];
     
-    if (mysqli_num_rows($table_result) === 0) {
+    if (!in_array($table, $valid_tables, true)) {
+        throw new Exception("ตารางไม่ถูกต้อง: {$table}");
+    }
+    
+    // ตรวจสอบว่าตารางมีอยู่จริงในฐานข้อมูล
+    $tables_query = "SHOW TABLES";
+    $tables_result = mysqli_query($conn, $tables_query);
+    $table_exists = false;
+    
+    if ($tables_result) {
+        while ($row = mysqli_fetch_row($tables_result)) {
+            if ($row[0] === $table) {
+                $table_exists = true;
+                break;
+            }
+        }
+    }
+    
+    if (!$table_exists) {
         throw new Exception("ไม่พบตาราง: {$table}");
     }
     
@@ -88,19 +123,19 @@ try {
         }
         
         // อัปเดตข้อมูลด้วย Prepared Statement
-        $sql = "UPDATE `{$table}` SET 
-                `status` = ?, 
-                `note` = ?,
-                `updated_at` = NOW(),
-                `updated_by` = ?
-                WHERE `id` = ?";
+        // ใช้ sprintf เพื่อป้องกันปัญหา SQL injection โดยไม่ใช้ placeholder สำหรับ table name
+        $escaped_table = mysqli_real_escape_string($conn, $table);
+        $sql = sprintf(
+            "UPDATE `%s` SET `status` = ?, `note` = ?, `updated_at` = NOW() WHERE `id` = ?",
+            $escaped_table
+        );
         
         $stmt = mysqli_prepare($conn, $sql);
         if (!$stmt) {
             throw new Exception("ไม่สามารถเตรียม SQL statement ได้: " . mysqli_error($conn));
         }
         
-        mysqli_stmt_bind_param($stmt, 'sssi', $status, $note, $user_id, $id);
+        mysqli_stmt_bind_param($stmt, 'ssi', $status, $note, $id);
         
         if (mysqli_stmt_execute($stmt)) {
             if (mysqli_stmt_affected_rows($stmt) > 0) {
@@ -118,7 +153,7 @@ try {
     mysqli_commit($conn);
     
     // สร้างไฟล์ SQL Export
-    createSqlExport($conn, $location, $table, $user_id);
+    createSqlExport($conn, $location, $table);
     
     $_SESSION['message'] = "บันทึกข้อมูลเรียบร้อยแล้ว ({$updated_count} รายการ)";
     
@@ -137,7 +172,7 @@ exit;
 /**
  * สร้างไฟล์ SQL Export
  */
-function createSqlExport($conn, $location, $table, $user_id) {
+function createSqlExport($conn, $location, $table) {
     try {
         // สร้างโฟลเดอร์ exports หากไม่มี
         $exportDir = __DIR__ . '/../../exports';
@@ -153,7 +188,7 @@ function createSqlExport($conn, $location, $table, $user_id) {
             $exportFile = $exportDir . '/checklist_export_' . date('Y-m-d_H-i-s') . '.sql';
             $sqlContent = "-- Export สำหรับ {$location}\n";
             $sqlContent .= "-- สร้างเมื่อ: " . date('Y-m-d H:i:s') . "\n";
-            $sqlContent .= "-- ผู้สร้าง: {$user_id}\n\n";
+            $sqlContent .= "-- ระบบ: Employee Checklist System\n\n";
             
             $sqlContent .= "DROP TABLE IF EXISTS `{$table}_backup`;\n";
             $sqlContent .= "CREATE TABLE `{$table}_backup` LIKE `{$table}`;\n\n";

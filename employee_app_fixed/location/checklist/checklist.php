@@ -21,46 +21,83 @@ if (!in_array($location, $locations, true)) {
 
 $conn_checklist = getChecklistConnection();
 if (!$conn_checklist) {
-    $_SESSION['error'] = 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้';
+    $_SESSION['error'] = 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้: โปรดตรวจสอบการตั้งค่า';
     header('Location: ../location.php');
     exit;
 }
 
-// ตรวจสอบและป้องกันชื่อตาราง
+// เพิ่มการตั้งค่าเพิ่มเติมสำหรับการจัดการ charset
+mysqli_query($conn_checklist, "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci");
+mysqli_query($conn_checklist, "SET character_set_connection=utf8mb4");
+mysqli_query($conn_checklist, "SET character_set_client=utf8mb4");
+mysqli_query($conn_checklist, "SET character_set_results=utf8mb4");
+
+// ตรวจสอบและป้องกันชื่อตาราง - ใช้ mapping สำหรับความปลอดภัย
 $table = $location;
 $valid_tables = ['เมืองสมุทรปราการ', 'พระประแดง', 'พระสมุทรเจดีย์', 'บางพลี', 'บางบ่อ', 'บางเสาธง'];
 
-if (!in_array($table, $valid_tables, true)) {
+// Mapping table names เพื่อป้องกันปัญหา charset
+$table_mapping = [
+    'เมืองสมุทรปราการ' => 'เมืองสมุทรปราการ',
+    'พระประแดง' => 'พระประแดง', 
+    'พระสมุทรเจดีย์' => 'พระสมุทรเจดีย์',
+    'บางพลี' => 'บางพลี',
+    'บางบ่อ' => 'บางบ่อ',
+    'บางเสาธง' => 'บางเสาธง'
+];
+
+if (!in_array($table, $valid_tables, true) || !isset($table_mapping[$table])) {
     $_SESSION['error'] = 'ตารางไม่ถูกต้อง';
     mysqli_close($conn_checklist);
     header('Location: ../location.php');
     exit;
 }
 
-// ตรวจสอบว่าตารางมีอยู่จริงในฐานข้อมูล
-$escaped_table_check = mysqli_real_escape_string($conn_checklist, $table);
-$check_table_sql = "SHOW TABLES LIKE '" . $escaped_table_check . "'";
-$result_check = mysqli_query($conn_checklist, $check_table_sql);
+// ใช้ชื่อตารางจาก mapping
+$safe_table_name = $table_mapping[$table];
 
-if (!$result_check || mysqli_num_rows($result_check) === 0) {
+// ตรวจสอบว่าตารางมีอยู่จริงในฐานข้อมูล โดยใช้วิธีที่ปลอดภัย
+$tables_query = "SHOW TABLES";
+$tables_result = mysqli_query($conn_checklist, $tables_query);
+$table_exists = false;
+
+if ($tables_result) {
+    while ($row = mysqli_fetch_row($tables_result)) {
+        if ($row[0] === $safe_table_name) {
+            $table_exists = true;
+            break;
+        }
+    }
+}
+
+if (!$table_exists) {
     $_SESSION['error'] = 'ไม่พบตาราง: ' . htmlspecialchars($table);
     mysqli_close($conn_checklist);
     header('Location: ../location.php');
     exit;
 }
 
-// ใช้ escape string เพื่อป้องกันปัญหา SQL injection และ syntax error
-$escaped_table = mysqli_real_escape_string($conn_checklist, $table);
-$sql = "SELECT `id`,`product_code`,`product_name`,`image_path`,`status`,`note` FROM `" . $escaped_table . "` ORDER BY `id` ASC";
+// เตรียม SQL statement อย่างปลอดภัย
+$sql = sprintf(
+    "SELECT `id`, `product_code`, `product_name`, `image_path`, `status`, `note` FROM `%s` ORDER BY `id` ASC",
+    mysqli_real_escape_string($conn_checklist, $safe_table_name)
+);
 
-// เพิ่มการ debug (สามารถลบออกได้หลังจากแก้ไขเสร็จ)
+// เพิ่มการ debug แบบละเอียด
+error_log("=== Checklist Debug Info ===");
+error_log("Location: " . $location);
+error_log("Safe table name: " . $safe_table_name);
 error_log("SQL Query: " . $sql);
+error_log("Character set: " . mysqli_character_set_name($conn_checklist));
 
 $res = mysqli_query($conn_checklist, $sql);
 if (!$res) { 
     $error_msg = 'เกิดข้อผิดพลาดในการดึงข้อมูล: ' . mysqli_error($conn_checklist);
-    error_log("Database Error: " . $error_msg);
-    $_SESSION['error'] = $error_msg;
+    $errno = mysqli_errno($conn_checklist);
+    error_log("Database Error Number: " . $errno);
+    error_log("Database Error Message: " . $error_msg);
+    error_log("SQL State: " . mysqli_sqlstate($conn_checklist));
+    $_SESSION['error'] = $error_msg . " (Error Code: $errno)";
     mysqli_close($conn_checklist);
     header('Location: ../location.php');
     exit;
@@ -201,7 +238,7 @@ include __DIR__ . '/../../includes/header.php';
                 </div>
                 <div>
                   <button type="submit" class="btn btn-success btn-lg me-2" id="saveBtn">
-                    <i class="bi bi-check2-all me-2"></i>บันทึกสถานะทั้งหมด
+                    <i class="bi bi-check2-all me-2"></i>บันทึก
                   </button>
                   <a href="../location.php" class="btn btn-secondary btn-lg">
                     <i class="bi bi-x-lg me-2"></i>ยกเลิก

@@ -28,23 +28,32 @@ if (!mysqli_set_charset($conn, 'utf8mb4')) {
     die('Error loading character set utf8mb4: ' . mysqli_error($conn));
 }
 
-// ฟังก์ชันสำหรับเชื่อมต่อกับฐานข้อมูล checklist (ใช้ db_employee เดียวกัน)
+// ฟังก์ชันสำหรับเชื่อมต่อกับฐานข้อมูล checklist
 // คืนค่า connection object หรือ null เมื่อเชื่อมต่อไม่สำเร็จ
 function getChecklistConnection() {
     $DB_HOST = 'localhost';
     $DB_USER = 'root';
     $DB_PASS = '';
-    $DB_CHECKLIST = 'db_employee'; // ใช้ฐานข้อมูลเดียวกัน
+    $DB_CHECKLIST = 'db_sp_checklist'; // ใช้ฐานข้อมูล checklist ที่ถูกต้อง
     
     $conn_checklist = mysqli_connect($DB_HOST, $DB_USER, $DB_PASS, $DB_CHECKLIST);
     if (!$conn_checklist) {
+        error_log("Failed to connect to checklist database: " . mysqli_connect_error());
         return null;
     }
     
+    // ตั้งค่า charset และ collation เพื่อรองรับภาษาไทย
     if (!mysqli_set_charset($conn_checklist, 'utf8mb4')) {
+        error_log("Error setting charset to utf8mb4: " . mysqli_error($conn_checklist));
         mysqli_close($conn_checklist);
         return null;
     }
+    
+    // ตั้งค่า SQL mode ให้เข้มงวดน้อยลง (ปรับตามต้องการ)
+    mysqli_query($conn_checklist, "SET sql_mode = ''");
+    
+    // ตั้งค่า timezone (ถ้าต้องการ)
+    mysqli_query($conn_checklist, "SET time_zone = '+07:00'");
     
     return $conn_checklist;
 }
