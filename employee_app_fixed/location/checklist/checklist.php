@@ -268,8 +268,8 @@ include __DIR__ . '/../../includes/header.php';
                   <a href="summary.php?location=<?php echo urlencode($location); ?>" class="btn btn-warning btn-lg me-2">
                     <i class="bi bi-clipboard-data me-2"></i>ดูสรุปผล
                   </a>
-                  <button type="button" class="btn btn-outline-danger btn-lg me-2" id="resetBtn">
-                    <i class="bi bi-trash3 me-2"></i>ล้างข้อมูล
+                  <button type="button" class="btn btn-outline-danger btn-lg me-2" id="resetBtn" title="ลบข้อมูล">
+                    <i class="bi bi-trash3 me-2"></i>ลบข้อมูล
                   </button>
                 </div>
                 <div>
@@ -347,17 +347,37 @@ document.addEventListener('DOMContentLoaded', function() {
     if (resetBtn) {
         resetBtn.addEventListener('click', function() {
             // แสดง confirmation dialog
-            const confirmReset = confirm('คุณต้องการล้างข้อมูลทั้งหมดหรือไม่ ข้อมูลที่กรอกทั้งหมดจะถูกลบออก');
+            const confirmReset = confirm('คุณต้องการล้างข้อมูลทั้งหมดหรือไม่? ');
             
             if (confirmReset) {
-                clearAllFormData();
+                // สร้าง form สำหรับส่งข้อมูลไปยัง clear_data.php
+                const clearForm = document.createElement('form');
+                clearForm.method = 'POST';
+                clearForm.action = 'clear_data.php';
+                
+                // เพิ่ม input สำหรับ location
+                const locationInput = document.createElement('input');
+                locationInput.type = 'hidden';
+                locationInput.name = 'location';
+                locationInput.value = '<?php echo htmlspecialchars($location); ?>';
+                clearForm.appendChild(locationInput);
+                
+                // แสดงสถานะ loading
+                const originalText = resetBtn.innerHTML;
+                resetBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>กำลังล้างข้อมูล...';
+                resetBtn.disabled = true;
+                
+                // เพิ่ม form ไปยัง document และ submit
+                document.body.appendChild(clearForm);
+                clearForm.submit();
             }
         });
     }
     
-    // ฟังก์ชันล้างข้อมูลทั้งหมดให้เป็นค่าว่าง
+    
+    // ฟังก์ชันล้างข้อมูลทั้งหมดให้เป็นค่าว่าง (สำหรับใช้งานในอนาคต)
     function clearAllFormData() {
-        console.log('�️ Clearing all form data...');
+        console.log('🛠️ Clearing all form data...');
         
         // ล้าง radio buttons ทั้งหมด
         document.querySelectorAll('input[type="radio"]').forEach(radio => {
