@@ -100,9 +100,9 @@ include __DIR__ . '/includes/header.php';
                                 </div>
                                 <h3 class="menu-title">รายงานและสถิติ</h3>
                                 <p class="menu-description">
-                                    ดูรายงานผลการทำงานและสถิติต่างๆ
+                                    ดูรายงานผลการทำงานและสถิติต่างๆ 
                                 </p>
-                                <a href="#" class="menu-btn btn-report">
+                                <a href="reports.php" class="menu-btn btn-report">
                                     <i class="fas fa-arrow-right"></i>
                                     ดูรายงาน
                                 </a>
