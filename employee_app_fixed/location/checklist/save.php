@@ -163,7 +163,7 @@ try {
     $_SESSION['error'] = 'เกิดข้อผิดพลาด: ' . $e->getMessage();
 }
 
-mysqli_close($conn);
+// ไม่ต้องปิด connection เองเพราะ Database class จะจัดการให้
 
 // กลับไปหน้า checklist
 header('Location: checklist.php?location=' . urlencode($location));

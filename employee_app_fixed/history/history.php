@@ -93,7 +93,7 @@ if ($conn_checklist) {
         }
     }
     
-    mysqli_close($conn_checklist);
+    // ไม่ต้องปิด connection เองเพราะ Database class จะจัดการให้
 }
 ?>
   <div class="container mt-4">

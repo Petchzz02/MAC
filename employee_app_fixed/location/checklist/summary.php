@@ -57,7 +57,7 @@ while ($row = mysqli_fetch_assoc($items_result)) {
     $items[] = $row;
 }
 
-mysqli_close($conn_checklist);
+// ไม่ต้องปิด connection เองเพราะ Database class จะจัดการให้
 
 // กำหนดค่าสำหรับ header template
 $page_title = 'สรุปผลการตรวจสอบ - ' . htmlspecialchars($location);

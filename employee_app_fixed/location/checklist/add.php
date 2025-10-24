@@ -69,7 +69,7 @@ if ($stmt) {
     $_SESSION['error'] = "เกิดข้อผิดพลาดในการเตรียมคำสั่ง SQL";
 }
 
-mysqli_close($conn_checklist);
+// ไม่ต้องปิด connection เองเพราะ Database class จะจัดการให้
 
 header('Location: checklist.php?location=' . urlencode($location));
 exit;

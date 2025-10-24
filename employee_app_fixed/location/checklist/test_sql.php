@@ -42,5 +42,5 @@ if ($result) {
     echo "Error describing table: " . mysqli_error($conn) . "\n";
 }
 
-mysqli_close($conn);
+// ไม่ต้องปิด connection เองเพราะ Database class จะจัดการให้
 ?>

@@ -48,7 +48,7 @@ $table_mapping = [
 
 if (!in_array($table, $valid_tables, true) || !isset($table_mapping[$table])) {
     $_SESSION['error'] = 'ตารางไม่ถูกต้อง';
-    mysqli_close($conn_checklist);
+    // ไม่ต้องปิด connection เองเพราะ Database class จะจัดการให้
     header('Location: ../location.php');
     exit;
 }
@@ -72,7 +72,7 @@ if ($tables_result) {
 
 if (!$table_exists) {
     $_SESSION['error'] = 'ไม่พบตาราง: ' . htmlspecialchars($table);
-    mysqli_close($conn_checklist);
+    // ไม่ต้องปิด connection เองเพราะ Database class จะจัดการให้
     header('Location: ../location.php');
     exit;
 }
@@ -100,7 +100,7 @@ if (!$res) {
     error_log("Database Error Message: " . $error_msg);
     error_log("SQL State: " . mysqli_sqlstate($conn_checklist));
     $_SESSION['error'] = $error_msg . " (Error Code: $errno)";
-    mysqli_close($conn_checklist);
+    // ไม่ต้องปิด connection เองเพราะ Database class จะจัดการให้
     header('Location: ../location.php');
     exit;
 }
@@ -109,7 +109,7 @@ $rows = [];
 while ($row = mysqli_fetch_assoc($res)) { 
     $rows[] = $row; 
 }
-mysqli_close($conn_checklist);
+// ไม่ต้องปิด connection เองเพราะ Database class จะจัดการให้
 
 // จัดกลุ่มข้อมูลตามประเภท
 $grouped_products = [];

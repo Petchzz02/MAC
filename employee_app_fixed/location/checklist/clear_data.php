@@ -89,7 +89,7 @@ try {
     
     // Commit transaction
     mysqli_commit($conn);
-    mysqli_close($conn);
+    // ไม่ต้องปิด connection เองเพราะ Database class จะจัดการให้
     
     // ลบไฟล์ export ล่าสุดของสถานที่นี้
     $deleted_files = deleteLatestExportFiles($location);
@@ -102,7 +102,7 @@ try {
     // Rollback transaction หากมี connection
     if (isset($conn) && $conn) {
         mysqli_rollback($conn);
-        mysqli_close($conn);
+        // ไม่ต้องปิด connection เองเพราะ Database class จะจัดการให้
     }
     
     $_SESSION['error'] = 'เกิดข้อผิดพลาด: ' . $e->getMessage();

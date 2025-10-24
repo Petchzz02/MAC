@@ -69,7 +69,7 @@ if ($conn_checklist) {
             $location['pending_items'] = 0;
         }
     }
-    mysqli_close($conn_checklist);
+    // ไม่ต้องปิด connection เองเพราะ Database class จะจัดการให้
 } else {
     // ถ้าเชื่อมต่อไม่ได้ ใช้ค่าเริ่มต้น
     foreach ($locations as &$location) {
