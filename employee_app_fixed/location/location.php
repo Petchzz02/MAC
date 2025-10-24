@@ -20,13 +20,24 @@ include __DIR__ . '/../includes/header.php';
 
 // รายการสถานที่ทั้งหมด
 $locations = [
-    ['name' => 'เมืองสมุทรปราการ', 'description' => 'สำนักงานใหญ่ เมืองสมุทรปราการ', 'icon' => 'bi-building'],
+    ['name' => 'เมืองสมุทรปราการ', 'description' => 'สำนักงานใหญ่ เมืองสมุทรปราการ', 'icon' => 'bi-geo-alt-fill'],
     ['name' => 'พระประแดง', 'description' => 'สาขาพระประแดง', 'icon' => 'bi-geo-alt-fill'],
     ['name' => 'พระสมุทรเจดีย์', 'description' => 'สาขาพระสมุทรเจดีย์', 'icon' => 'bi-geo-alt-fill'],
     ['name' => 'บางพลี', 'description' => 'สาขาบางพลี', 'icon' => 'bi-geo-alt-fill'],
     ['name' => 'บางบ่อ', 'description' => 'สาขาบางบ่อ', 'icon' => 'bi-geo-alt-fill'],
     ['name' => 'บางเสาธง', 'description' => 'สาขาบางเสาธง', 'icon' => 'bi-geo-alt-fill']
 ];
+
+// กรองข้อมูลซ้ำและทำให้แน่ใจว่าไม่มีรายการซ้ำ
+$seen_names = [];
+$unique_locations = [];
+foreach ($locations as $location) {
+    if (!in_array($location['name'], $seen_names)) {
+        $seen_names[] = $location['name'];
+        $unique_locations[] = $location;
+    }
+}
+$locations = $unique_locations;
 
 // ดึงสถิติจากฐานข้อมูล checklist
 $conn_checklist = getChecklistConnection();
