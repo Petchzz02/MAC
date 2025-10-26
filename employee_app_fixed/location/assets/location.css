@@ -395,6 +395,7 @@ body {
 /* Enhanced Button Styles */
 .location-btn {
     position: relative;
+    z-index: 20;
     overflow: hidden;
     border: none;
     box-shadow: 0 4px 15px rgba(79, 70, 229, 0.2);

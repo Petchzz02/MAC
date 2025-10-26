@@ -117,26 +117,26 @@ if ($conn_checklist) {
 
             <!-- Location Cards -->
             <div class="row g-4">
-                <?php foreach ($locations as $index => $location): ?>
+                <?php foreach ($locations as $index => $locationArr): ?>
                     <div class="col-lg-4 col-md-6">
-                        <div class="location-card" data-location="<?php echo htmlspecialchars($location['name']); ?>">
+                        <div class="location-card" data-location="<?php echo htmlspecialchars($locationArr['name']); ?>">
                             <div class="card-body text-center">
                                 <div class="location-icon mb-3">
-                                    <i class="<?php echo $location['icon']; ?>"></i>
+                                    <i class="<?php echo $locationArr['icon']; ?>"></i>
                                 </div>
-                                <h5 class="location-title"><?php echo htmlspecialchars($location['name']); ?></h5>
-                                <p class="location-description"><?php echo htmlspecialchars($location['description']); ?></p>
+                                <h5 class="location-title"><?php echo htmlspecialchars($locationArr['name']); ?></h5>
+                                <p class="location-description"><?php echo htmlspecialchars($locationArr['description']); ?></p>
                                 <div class="location-stats mb-3">
                                     <div class="stat-item">
-                                        <span class="stat-number"><?php echo $location['total_items']; ?></span>
+                                        <span class="stat-number"><?php echo $locationArr['total_items']; ?></span>
                                         <span class="stat-label">รายการสินค้า</span>
                                     </div>
                                     <div class="stat-item">
-                                        <span class="stat-number"><?php echo $location['checked_items']; ?></span>
+                                        <span class="stat-number"><?php echo $locationArr['checked_items']; ?></span>
                                         <span class="stat-label">ตรวจแล้ว</span>
                                     </div>
                                 </div>
-                                <a href="checklist/checklist.php?location=<?php echo urlencode($location['name']); ?>" 
+                                <a href="checklist/checklist.php?location=<?php echo urlencode($locationArr['name']); ?>" 
                                    class="btn btn-primary location-btn">
                                     <i class="bi bi-check2-square me-2"></i>เข้าสู่เช็คลิสต์
                                 </a>
