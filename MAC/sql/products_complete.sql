@@ -94,7 +94,7 @@ INSERT INTO `เมืองสมุทรปราการ` (`product_code`,`
   ('P3',' คริสตัล 1,000 มล.','../../image/products/water/คริสตัล1,000มล..jpg',NULL),
   ('P4',' คริสตัล 1,500 มล.','../../image/products/water/คริสตัล1,500มล..jpg',NULL),
   ('P5',' เนสท์เล่ 330 มล.','../../image/products/water/เนสท์เล่ 330มล.jpg',NULL),
-  ('P6',' เนสท์เล่ 600 มล.','../../image/products/water/เนสท์เล่600มล..jpg',NULL),
+  ('P6',' เนสท์เล่ 600 มล.','../../image/products/water/เนสท์เล่600มล.jpg',NULL),
   ('P7',' เนสท์เล่ 1,500 มล.','../../image/products/water/เนสท์เล่1,500มล.jpg',NULL),
   ('P8',' เนสท์เล่ 6,000 มล.','../../image/products/water/เนสท์เล่6,000มล.jpg',NULL);
 
