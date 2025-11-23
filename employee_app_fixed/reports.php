@@ -192,12 +192,9 @@ if ($conn_checklist) {
                             <p class="mb-0 mt-2 opacity-90">ข้อมูลสถิติแบบ Real-time จากทุกสถานที่</p>
                         </div>
                         <div>
-                            <a href="index.php" class="btn btn-light btn-sm me-2">
+                            <a href="index.php" class="btn btn-light btn-sm">
                                 <i class="bi bi-house-fill me-1"></i>หน้าหลัก
                             </a>
-                            <button class="btn btn-outline-light btn-sm" onclick="refreshData()">
-                                <i class="bi bi-arrow-clockwise me-1"></i>รีเฟรช
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -611,18 +608,6 @@ function initializeCharts() {
     });
 }
 
-function refreshData() {
-    // แสดง loading state
-    const refreshBtn = document.querySelector("[onclick=\"refreshData()\"]");
-    const originalText = refreshBtn.innerHTML;
-    refreshBtn.innerHTML = "<i class=\"bi bi-arrow-clockwise me-1 spin\"></i>กำลังรีเฟรช...";
-    refreshBtn.disabled = true;
-    
-    // รีโหลดหน้า
-    setTimeout(() => {
-        window.location.reload();
-    }, 1000);
-}
 
 // CSS animation สำหรับ spin
 const style = document.createElement("style");
