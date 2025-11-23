@@ -94,7 +94,7 @@ INSERT INTO `เมืองสมุทรปราการ` (`product_code`,`
   ('P3',' คริสตัล 1,000 มล.','../../image/products/water/คริสตัล1,000มล..jpg',NULL),
   ('P4',' คริสตัล 1,500 มล.','../../image/products/water/คริสตัล1,500มล..jpg',NULL),
   ('P5',' เนสท์เล่ 330 มล.','../../image/products/water/เนสท์เล่ 330มล.jpg',NULL),
-  ('P6',' เนสท์เล่ 600 มล.','../../image/products/water/เนสท์เล่600มล.jpg',NULL),
+  ('P6',' เนสท์เล่ 600 มล.','../../image/products/water/เนสท์เล่600มล..jpg',NULL),
   ('P7',' เนสท์เล่ 1,500 มล.','../../image/products/water/เนสท์เล่1,500มล.jpg',NULL),
   ('P8',' เนสท์เล่ 6,000 มล.','../../image/products/water/เนสท์เล่6,000มล.jpg',NULL);
 
@@ -109,6 +109,7 @@ INSERT INTO `พระประแดง` (`product_code`,`product_name`,`image_
   ('P7',' เนสท์เล่ 1,500 มล.','../../image/products/water/เนสท์เล่1,500มล.jpg',NULL),
   ('P8',' เนสท์เล่ 6,000 มล.','../../image/products/water/เนสท์เล่6,000มล.jpg',NULL);
 
+
 -- Insert water products for พระสมุทรเจดีย์
 INSERT INTO `พระสมุทรเจดีย์` (`product_code`,`product_name`,`image_path`,`status`) VALUES
   ('P1',' คริสตัล 350 มล.','../../image/products/water/คริสตัล350มล..jpg',NULL),
@@ -119,6 +120,7 @@ INSERT INTO `พระสมุทรเจดีย์` (`product_code`,`produc
   ('P6',' เนสท์เล่ 600 มล.','../../image/products/water/เนสท์เล่600มล..jpg',NULL),
   ('P7',' เนสท์เล่ 1,500 มล.','../../image/products/water/เนสท์เล่1,500มล.jpg',NULL),
   ('P8',' เนสท์เล่ 6,000 มล.','../../image/products/water/เนสท์เล่6,000มล.jpg',NULL);
+;
 
 -- Insert water products for บางพลี
 INSERT INTO `บางพลี` (`product_code`,`product_name`,`image_path`,`status`) VALUES
@@ -131,9 +133,10 @@ INSERT INTO `บางพลี` (`product_code`,`product_name`,`image_path`,`st
   ('P7',' เนสท์เล่ 1,500 มล.','../../image/products/water/เนสท์เล่1,500มล.jpg',NULL),
   ('P8',' เนสท์เล่ 6,000 มล.','../../image/products/water/เนสท์เล่6,000มล.jpg',NULL);
 
+
 -- Insert water products for บางบ่อ
 INSERT INTO `บางบ่อ` (`product_code`,`product_name`,`image_path`,`status`) VALUES
-  ('P1',' คริสตัล 350 มล.','../../image/products/water/คริสตัล350มล..jpg',NULL),
+   ('P1',' คริสตัล 350 มล.','../../image/products/water/คริสตัล350มล..jpg',NULL),
   ('P2',' คริสตัล 600 มล.','../../image/products/water/คริสตัล600มล..jpg',NULL),
   ('P3',' คริสตัล 1,000 มล.','../../image/products/water/คริสตัล1,000มล..jpg',NULL),
   ('P4',' คริสตัล 1,500 มล.','../../image/products/water/คริสตัล1,500มล..jpg',NULL),
@@ -141,6 +144,7 @@ INSERT INTO `บางบ่อ` (`product_code`,`product_name`,`image_path`,`st
   ('P6',' เนสท์เล่ 600 มล.','../../image/products/water/เนสท์เล่600มล..jpg',NULL),
   ('P7',' เนสท์เล่ 1,500 มล.','../../image/products/water/เนสท์เล่1,500มล.jpg',NULL),
   ('P8',' เนสท์เล่ 6,000 มล.','../../image/products/water/เนสท์เล่6,000มล.jpg',NULL);
+
 -- Insert water products for บางเสาธง
 INSERT INTO `บางเสาธง` (`product_code`,`product_name`,`image_path`,`status`) VALUES
   ('P1',' คริสตัล 350 มล.','../../image/products/water/คริสตัล350มล..jpg',NULL),
@@ -319,3 +323,10 @@ ORDER BY location, category;
 -- Categories: เครื่องดื่ม, ขนม
 -- Features: Product tracking, Category classification, User tracking
 -- =====================================================
+
+UPDATE `เมืองสมุทรปราการ` SET image_path = '../../image/products/water/เนสท์เล่600มล..jpg' WHERE product_code = 'P6';
+UPDATE `พระประแดง` SET image_path = '../../image/products/water/เนสท์เล่600มล..jpg' WHERE product_code = 'P6';
+UPDATE `พระสมุทรเจดีย์` SET image_path = '../../image/products/water/เนสท์เล่600มล..jpg' WHERE product_code = 'P6';
+UPDATE `บางพลี` SET image_path = '../../image/products/water/เนสท์เล่600มล..jpg' WHERE product_code = 'P6';
+UPDATE `บางบ่อ` SET image_path = '../../image/products/water/เนสท์เล่600มล..jpg' WHERE product_code = 'P6';
+UPDATE `บางเสาธง` SET image_path = '../../image/products/water/เนสท์เล่600มล..jpg' WHERE product_code = 'P6';
