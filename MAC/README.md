@@ -19,7 +19,7 @@
 
 ## โครงสร้างไฟล์
 ```
-employee_app_fixed/
+MAC/
 ├── assets/                    # ไฟล์ CSS และ JavaScript
 │   ├── index.css
 │   ├── login.css
