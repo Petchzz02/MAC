@@ -12,12 +12,24 @@ class Database {
     private ?mysqli $employeeConnection = null;
     private ?mysqli $checklistConnection = null;
     
-    // การตั้งค่าฐานข้อมูล
-    private const DB_HOST = 'localhost';
-    private const DB_USER = 'root';
-    private const DB_PASS = '';
-    private const DB_EMPLOYEE = 'db_employee';
-    private const DB_CHECKLIST = 'db_sp_checklist';
+    // ตั้งค่า environment: 'local' หรือ 'production'
+    // เปลี่ยนเป็น 'production' เมื่อต้องการ deploy
+    private const ENVIRONMENT = 'local';
+    
+    // การตั้งค่าฐานข้อมูลสำหรับ localhost
+    private const LOCAL_DB_HOST = 'localhost';
+    private const LOCAL_DB_USER = 'root';
+    private const LOCAL_DB_PASS = '';
+    private const LOCAL_DB_EMPLOYEE = 'db_employee';
+    private const LOCAL_DB_CHECKLIST = 'db_sp_checklist';
+    
+    // การตั้งค่าฐานข้อมูลสำหรับ production (InfinityFree)
+    private const PROD_DB_HOST = 'sql100.infinityfree.com';
+    private const PROD_DB_USER = 'if0_40531565';
+    private const PROD_DB_PASS = 'WDPF5eTSQY';
+    private const PROD_DB_EMPLOYEE = 'if0_40531565_mysite';
+    private const PROD_DB_CHECKLIST = 'if0_40531565_mysite';
+    
     private const DB_CHARSET = 'utf8mb4';
     
     // รายชื่อสถานที่ที่ถูกต้อง
@@ -32,6 +44,22 @@ class Database {
 
     private function __construct() {
         // Private constructor เพื่อป้องกันการสร้าง instance ใหม่
+    }
+
+    /**
+     * รับค่า config ตาม environment ปัจจุบัน
+     */
+    private function getConfig(string $key): string {
+        $isProduction = self::ENVIRONMENT === 'production';
+        
+        return match($key) {
+            'host' => $isProduction ? self::PROD_DB_HOST : self::LOCAL_DB_HOST,
+            'user' => $isProduction ? self::PROD_DB_USER : self::LOCAL_DB_USER,
+            'pass' => $isProduction ? self::PROD_DB_PASS : self::LOCAL_DB_PASS,
+            'employee' => $isProduction ? self::PROD_DB_EMPLOYEE : self::LOCAL_DB_EMPLOYEE,
+            'checklist' => $isProduction ? self::PROD_DB_CHECKLIST : self::LOCAL_DB_CHECKLIST,
+            default => ''
+        };
     }
 
     /**
@@ -65,7 +93,7 @@ class Database {
      */
     public function getEmployeeConnection(): ?mysqli {
         if (!$this->isConnectionAlive($this->employeeConnection)) {
-            $this->employeeConnection = $this->createConnection(self::DB_EMPLOYEE);
+            $this->employeeConnection = $this->createConnection($this->getConfig('employee'));
         }
         return $this->employeeConnection;
     }
@@ -75,7 +103,7 @@ class Database {
      */
     public function getChecklistConnection(): ?mysqli {
         if (!$this->isConnectionAlive($this->checklistConnection)) {
-            $this->checklistConnection = $this->createConnection(self::DB_CHECKLIST);
+            $this->checklistConnection = $this->createConnection($this->getConfig('checklist'));
         }
         return $this->checklistConnection;
     }
@@ -86,9 +114,9 @@ class Database {
     private function createConnection(string $database): ?mysqli {
         try {
             $connection = new mysqli(
-                self::DB_HOST,
-                self::DB_USER,
-                self::DB_PASS,
+                $this->getConfig('host'),
+                $this->getConfig('user'),
+                $this->getConfig('pass'),
                 $database
             );
 
