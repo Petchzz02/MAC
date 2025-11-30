@@ -165,8 +165,8 @@ if ($conn_checklist) {
 // กำหนด JavaScript สำหรับดาวน์โหลดรายงาน
 $inline_js = '
 function downloadReport() {
-    // สร้างข้อมูล CSV
-    let csvContent = "วันที่,เวลาเข้า,เวลาออก,ชั่วโมงทำงาน,สถานะ\\n";
+    // สร้างข้อมูล TSV (Tab-Separated Values) แทน CSV
+    let tsvContent = "วันที่\\tเวลาเข้า\\tเวลาออก\\tชั่วโมงทำงาน\\tสถานะ\\n";
     
     const rows = document.querySelectorAll("tbody tr");
     rows.forEach(row => {
@@ -178,18 +178,28 @@ function downloadReport() {
             const workHours = cells[3].textContent.trim();
             const status = cells[4].querySelector(".badge").textContent.trim();
             
-            csvContent += `"${date}","${checkIn}","${checkOut}","${workHours}","${status}"\\n`;
+            tsvContent += `${date}\\t${checkIn}\\t${checkOut}\\t${workHours}\\t${status}\\n`;
         }
     });
     
+    // สร้าง UTF-8 BOM แบบ byte array
+    const BOM = new Uint8Array([0xEF, 0xBB, 0xBF]);
+    const textEncoder = new TextEncoder();
+    const contentBytes = textEncoder.encode(tsvContent);
+    
+    // รวม BOM กับเนื้อหา
+    const fileContent = new Uint8Array(BOM.length + contentBytes.length);
+    fileContent.set(BOM, 0);
+    fileContent.set(contentBytes, BOM.length);
+    
     // สร้างไฟล์และดาวน์โหลด
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const blob = new Blob([fileContent], { type: "text/tab-separated-values;charset=utf-8;" });
     const link = document.createElement("a");
     
     if (link.download !== undefined) {
         const url = URL.createObjectURL(blob);
         link.setAttribute("href", url);
-        link.setAttribute("download", "work_history_" + new Date().toISOString().slice(0, 10) + ".csv");
+        link.setAttribute("download", "work_history_" + new Date().toISOString().slice(0, 10) + ".xls");
         link.style.visibility = "hidden";
         document.body.appendChild(link);
         link.click();
